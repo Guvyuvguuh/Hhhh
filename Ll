@@ -1,0 +1,155 @@
+import random
+import pyttsx3
+import re  # Importing the regular expression module
+import wikipedia
+from colorama import init, Fore
+
+# Initialize colorama and text-to-speech engine
+init(autoreset=True)
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+engine.setProperty('volume', 1)
+
+# List of jokes
+jokes = [
+    "Why don't scientists trust atoms? Because they make up everything!",
+    "I told my computer I needed a break. Now it won't stop sending me Kit-Kats.",
+    "Why don't skeletons fight each other? They don't have the guts.",
+    "Why did the math book look sad? Because it had too many problems.",
+    "What did one ocean say to the other ocean? Nothing, they just waved.",
+    "Why don’t programmers like nature? It has too many bugs.",
+    "What’s orange and sounds like a parrot? A carrot!",
+    "Why was the computer cold? It left its Windows open.",
+    "Why can't your nose be 12 inches long? Because then it would be a foot!",
+    "Why did the bicycle fall over? Because it was two-tired.",
+    "How does a penguin build its house? Igloos it together!",
+    "What do you get if you cross a snowman and a vampire? Frostbite.",
+    "Why did the tomato turn red? Because it saw the salad dressing!",
+    "What’s a skeleton’s least favorite room in the house? The living room.",
+    "Why did the golfer bring an extra pair of pants? In case he got a hole in one."
+]
+
+# Function to speak the message
+def speak_message(message):
+    engine.say(message)
+    engine.runAndWait()
+
+# Function to handle user inputs and provide responses
+def handle_input(user_input):
+    user_input = user_input.lower()  # Normalize the input to lowercase for easier matching
+
+    # Using regular expressions to match different ways the user might ask for a joke
+    if re.search(r"(tell me a joke|joke)", user_input):  # Matches any of these patterns
+        print("Debug: Joke request recognized!")  # Debugging line to confirm joke request
+        return random.choice(jokes)
+    
+    # Handling conversational responses
+    if "hi" in user_input or "hello" in user_input:
+        return "Hello! How can I assist you today?"
+    elif "thanks" in user_input or "thank you" in user_input:
+        return "You're welcome! Let me know if you need anything else."
+    elif "ok" in user_input or "good" in user_input:
+        return "Great! How can I assist you further?"
+    elif "what's up" in user_input:
+        return "Not much! How about you?"
+    elif "sorry" in user_input:
+        return "No worries! How can I help you?"
+    elif "nice" in user_input:
+        return "I'm glad to hear that! What can I do for you next?"
+    elif "welcome" in user_input:
+        return "Thank you! It's great to be here. What can I do for you?"
+    
+    # Handling 'who is' questions
+    elif "who is" in user_input:
+        query = user_input.replace("who is", "").strip()
+        return who_is(query)
+    
+    # Handling 'what is' questions
+    elif "what is" in user_input:
+        query = user_input.replace("what is", "").strip()
+        return what_is(query)
+
+    # Handle essay writing requests
+    elif "essay on" in user_input:
+        topic = user_input.replace("essay on", "").strip()
+        return write_essay(topic)
+    
+    # Handle "what can you do"
+    elif "what can you do" in user_input or "what do you do" in user_input:
+        return "I can help with essay writing, tell jokes, get information from Wikipedia, and much more! Just ask me anything."
+    
+    # Default response
+    return "Sorry, I couldn't understand that. Can you please rephrase?"
+
+# Function to handle 'who is' questions using Wikipedia
+def who_is(query):
+    try:
+        result = wikipedia.summary(query, sentences=2)
+        return f"Here's some information about '{query}': {result}"
+    except wikipedia.exceptions.DisambiguationError:
+        return f"The topic '{query}' is ambiguous. Please provide more details."
+    except wikipedia.exceptions.PageError:
+        return f"No results found for '{query}'. Please try another query."
+    except Exception as e:
+        return f"An error occurred while fetching information: {str(e)}"
+
+# Function to handle 'what is' questions using Wikipedia
+def what_is(query):
+    try:
+        result = wikipedia.summary(query, sentences=2)
+        return f"Here's a brief description of '{query}': {result}"
+    except wikipedia.exceptions.DisambiguationError:
+        return f"The topic '{query}' is ambiguous. Please provide more details."
+    except wikipedia.exceptions.PageError:
+        return f"No results found for '{query}'. Please try another query."
+    except Exception as e:
+        return f"An error occurred while fetching information: {str(e)}"
+
+# Function to write an essay on a given topic using Wikipedia summary
+def write_essay(topic):
+    try:
+        # Get the Wikipedia summary for the topic
+        summary = wikipedia.summary(topic, sentences=5)
+        
+        # Structure the essay
+        introduction = f"Introduction: The topic of {topic} is of great importance and interest in various fields. This essay will explore the key concepts related to {topic}.\n\n"
+        body = f"Body: According to Wikipedia, {summary} This provides a good foundation for understanding the main aspects of {topic}. Further research can expand upon these ideas to form a deeper understanding of the subject.\n\n"
+        conclusion = f"Conclusion: In conclusion, {topic} has broad implications and continues to evolve. The information presented here provides a solid overview, though further exploration is encouraged for a more comprehensive understanding.\n"
+        
+        # Citation from Wikipedia
+        citation = f"\nReference: {topic}. (Year). Wikipedia. Retrieved from {wikipedia.page(topic).url}"
+        
+        # Combine the essay
+        essay = introduction + body + conclusion + citation
+        return essay
+    except wikipedia.exceptions.DisambiguationError:
+        return "The topic is ambiguous, please specify a more precise query."
+    except wikipedia.exceptions.PageError:
+        return f"No results found for '{topic}'. Please try another topic."
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
+# Function to display the terminal interface
+def display_interface():
+    print(Fore.GREEN + "Welcome to Lai, your personal assistant! Type 'exit' to quit.")
+    print(Fore.YELLOW + "You can ask me to tell jokes, help with Wikipedia searches, and write essays!")
+
+# Main loop
+def run_chat():
+    display_interface()
+    while True:
+        user_input = input(Fore.CYAN + "\nYou: ")
+
+        if user_input.lower() == "exit":
+            print(Fore.RED + "Goodbye! Take care.")
+            break
+
+        # Get response from the assistant
+        response = handle_input(user_input)
+        print(Fore.WHITE + f"\nLai: {response}")
+
+        # Optionally speak the response
+        speak_message(response)
+
+if __name__ == "__main__":
+    run_chat()
